@@ -1,98 +1,96 @@
-#ifndef __lisp_h_
-#define __lisp_h_
+/*
+ * "yascm.h" yascm data types and external functions.
+ * Copyright (C) 2015 Hmgle <dustgle@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
+#ifndef _YASCM_H
+#define _YASCM_H
 
-#include "lisp.tab.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <assert.h>
 
-int yyparse(void);
-int yylex(void);
-void yyerror(char*);
+#define debug_print(fmt, ...) \
+	do { \
+		fprintf(stderr, "debug_print: %s: %d: %s():" \
+			fmt "\n", __FILE__, __LINE__, __func__, \
+			##__VA_ARGS__); \
+	} while (0)
 
-typedef enum { INVALID = -1, INTEGER, REAL } SYMBOL_TYPE;
-typedef enum { NUM_TYPE, FUNC_TYPE, LET_TYPE, SYM, COND_TYPE } AST_NODE_TYPE;
-typedef enum { ADD, SUB, MULT, DIV, POW, SETQ, LIST, CAR, CDR, NTH, CONS, REVERSE, APPEND, 
-                LENGTH, MEMBER, ASSOC, REMOVE, SUBST, ATOM, NIL, NUMBERP, ZEROP, MINUSP,
-                EQUAL, SMALLER, LARGER, GREATEREQUAL, LESSEQUAL, STRINGP } FUNC_NAMES;  
+#define DIE(fmt, ...) \
+	do { \
+		debug_print(fmt, ##__VA_ARGS__); \
+		exit(-1); \
+	} while (0)
 
-typedef struct scope_node
-{
-    struct symbol_ast_node* symbols;
-    struct scope_node* parent;
-} SCOPE_NODE;
+typedef enum {
+	FIXNUM,
+	FLOATNUM,
+	BOOL,
+	CHAR,
+	STRING,
+	PAIR,
+	SYMBOL,
+	KEYWORD,
+	PRIM,
+	COMPOUND_PROC,
+	ENV,
+	OTHER,
+} object_type;
 
-typedef struct
-{
-    SYMBOL_TYPE type;
-    double value;
-} NUMBER_AST_NODE;
+typedef struct object_s object;
+typedef object *Primitive(object *env, object *args);
 
-typedef struct
-{
-    struct ast_node* condition;
-    struct ast_node* true_expr;
-    struct ast_node* false_expr;
-} COND_AST_NODE;
+struct object_s {
+	object_type type;
+	union {
+		int64_t int_val; /* FIXNUM */
+		long double float_val; /* FLOATNUM */
+		bool bool_val; /* BOOL */
+		char char_val; /* CHAR */
+		char *string_val; /* STRING */
+		struct { /* PAIR */
+			object *car;
+			object *cdr;
+		};
+		struct { /* COMPOUND_PROC */
+			object *parameters;
+			object *body;
+			object *env;
+		};
+		struct { /* env frame */
+			object *vars;
+			object *up;
+		};
+		Primitive *func;
+	};
+};
 
-typedef struct function_ast_node
-{
-    char* name;
-    struct ast_node* op1;
-    struct ast_node* op2;
-    struct ast_node* op3;
-} FUNCTION_AST_NODE;
-
-typedef struct symbol_ast_node
-{
-    char* name;
-    SYMBOL_TYPE type;
-    struct ast_node* value;
-    struct symbol_ast_node* next;
-} SYMBOL_AST_NODE;
-
-typedef struct let_ast_node
-{
-    SCOPE_NODE* scope;
-    struct ast_node* s_expr;
-} LET_AST_NODE;
-
-typedef struct ast_node
-{
-    AST_NODE_TYPE type;
-    union
-    {
-        NUMBER_AST_NODE number;
-        FUNCTION_AST_NODE function;
-        LET_AST_NODE let;
-        SYMBOL_AST_NODE symbol;
-        COND_AST_NODE condition;
-    } data;
-} AST_NODE;
-
-// functions for creating ast_nodes
-AST_NODE* number(double value);
-
-AST_NODE* function1(char* funcName, AST_NODE* op1);
-AST_NODE* function(char* funcName, AST_NODE* op1, AST_NODE* op2);
-AST_NODE* function3(char* funcName, AST_NODE* op1, AST_NODE* op2, AST_NODE* op3);
-
-AST_NODE* let(SYMBOL_AST_NODE* symbols, AST_NODE* s_expr);
-SYMBOL_AST_NODE* let_list(SYMBOL_AST_NODE* symbol, SYMBOL_AST_NODE* let_list);
-SYMBOL_AST_NODE* let_elem(char* type, char* symbol, AST_NODE* s_expr);
-AST_NODE* condition(AST_NODE* condition, AST_NODE* ifTrue, AST_NODE* ifFalse);
-AST_NODE* symbol(char* name);
-
-// functions for doing stuff with the symbol table
-double getSymbolValue(char* name);
-void leaveScope();
-void enterScope(SCOPE_NODE* newScope);
-
-// functions for other stuff
-NUMBER_AST_NODE* eval(AST_NODE* ast);
-void freeNode(AST_NODE* p);
+object *cons(object *car, object *cdr);
+object *make_bool(bool val);
+object *make_char(char val);
+object *make_string(const char *val);
+object *make_fixnum(int64_t val);
+object *make_emptylist(void);
+object *make_symbol(const char *name);
+object *make_quote(object *obj);
+object *make_function(object *parameters, object *body, object *env);
+object *make_env(object *var, object *up);
+object *eval(object *env, object *obj);
+void object_print(const object *obj);
+void eof_handle(void);
 
 #endif
