@@ -314,8 +314,16 @@ static void add_primitive(object *env, char *name, Primitive *func,
 static object *prim_plus(object *env, object *args)
 {
 	int64_t ret;
-	for (ret = 0; args != Nil; args = args->cdr)
+	for (ret = 0; args != Nil; args = args->cdr) {
+		if (args->car->type != CHAR && args->car->type != FIXNUM) {
+			printf("Invalide Argument:");
+			object_print(args);
+			printf("\n");
+			return Error;
+		}
+		
 		ret += (car(args)->int_val);
+	}
 	return make_fixnum(ret);
 }
 
@@ -336,36 +344,92 @@ static object *prim_sub(object *env, object *args)
 	if (list_length(args) == 1)
 		return make_fixnum(-car(args)->int_val);
 	ret = car(args)->int_val;
-	for (args = args->cdr; args != Nil; args = args->cdr)
+	for (args = args->cdr; args != Nil; args = args->cdr) {
+		if (args->car->type != CHAR && args->car->type != FIXNUM) {
+			printf("Invalide Argument:");
+			object_print(args);
+			printf("\n");
+			return Error;
+		}
 		ret -= (car(args)->int_val);
+	}
 	return make_fixnum(ret);
 }
 
-static object *prim_mul(object *env, object *args)
+static object* prim_mul(object* env, object* args)
 {
 	int64_t ret;
-	for (ret = 1; args != Nil; args = args->cdr)
-		ret *= (car(args)->int_val);
+	for (ret = 1; args != Nil; args = args->cdr) {
+
+		if (args->car->type != CHAR && args->car->type != FIXNUM) {
+			printf("Invalide Argument:");
+			object_print(args);
+			printf("\n");
+			return Error;
+		}
+	ret *= (car(args)->int_val);
+}
 	return make_fixnum(ret);
 }
 
 static object *prim_quotient(object *env, object *args)
 {
+
+	if (args->car->type != CHAR && args->car->type != FIXNUM) {
+		printf("Invalide Argument:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (cadr(args)->type != CHAR && cadr(args)->type != FIXNUM) {
+		printf("Invalide Argument:");
+		object_print(cadr(args));
+		printf("\n");
+		return Error;
+	}
 	return make_fixnum(args->car->int_val / cadr(args)->int_val);
 }
 
 static object *prim_cons(object *env, object *args)
 {
+	if (car(args)->type != FIXNUM && car(args)->type != SYMBOL) {
+		printf("1st argument is not atom:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (cadr(args)->type != PAIR) {
+		printf("secend argument is not list:");
+		object_print(cadr(args));
+		printf("\n");
+		return Error;
+	}
+
 	return cons(car(args), cadr(args));
 }
 
 static object *prim_car(object *env, object *args)
 {
+
+	if (car(args)->type != PAIR) {
+		printf("Invalide Argument:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
 	return caar(args);
 }
 
 static object *prim_cdr(object *env, object *args)
 {
+
+	if (car(args)->type != PAIR) {
+		printf("Invalide Argument:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	
 	return cdar(args);
 }
 static object* prim_error(object* env, object* args)
@@ -382,6 +446,19 @@ static object* prim_nil(object* env, object* args)
 static object* prim_remove(object* env, object* args)
 {
 	object* ret = create_object(PAIR);
+
+	if (car(args)->type != FIXNUM && car(args)->type != SYMBOL) {
+		printf("1st argument is not atom:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (cdr(args)->type != PAIR) {
+		printf("2nd argument is not list:");
+		object_print(cdr(args));
+		printf("\n");
+		return Error;
+	}
 
 	ret = cdr(args);
 	ret = ret->car; //ret은 이제 입력 리스트
@@ -499,6 +576,14 @@ static object *prim_define(object *env, object *args)
 }
 static object* prim_setq(object* env, object* args)
 {
+	if (car(args)->type != SYMBOL) {
+		printf("Invalide Argument:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+
+	}
+
 	define_variable(def_var(args), def_val(args, env), env);
 	return def_val(args, env);
 }
@@ -646,6 +731,9 @@ static object *prim_is_eq(object *env, object *args)
 {
 	object *obj;
 	object *first = args->car;
+	if (args->car->type != args->cdr->type) {
+		return make_bool(false);
+	}
 	for (; args != Nil; args = args->cdr) {
 		obj = args->car;
 		if (obj->type != first->type)
@@ -694,6 +782,20 @@ static object *prim_is_num_gt(object *env, object *args)
 {
 	int64_t next;
 	int64_t first;
+
+	if (args->car->type != FIXNUM) {
+		printf("1st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (args->cdr->car->type != FIXNUM) {
+		printf("2st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	
 	if (args == Nil)
 		return make_bool(true);
 	first = args->car->int_val;
@@ -709,6 +811,19 @@ static object* prim_is_num_lt(object* env, object* args)
 {
 	int64_t next;
 	int64_t first;
+
+	if (args->car->type != FIXNUM) {
+		printf("1st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (args->cdr->car->type != FIXNUM) {
+		printf("2st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
 	if (args == Nil)
 		return make_bool(true);
 	first = args->car->int_val;
@@ -723,6 +838,19 @@ static object* prim_is_num_gteq(object* env, object* args)
 {
 	int64_t next;
 	int64_t first;
+
+	if (args->car->type != FIXNUM) {
+		printf("1st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (args->cdr->car->type != FIXNUM) {
+		printf("2st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
 	if (args == Nil)
 		return make_bool(true);
 	first = args->car->int_val;
@@ -738,6 +866,19 @@ static object* prim_is_num_lteq(object* env, object* args)
 {
 	int64_t next;
 	int64_t first;
+
+	if (args->car->type != FIXNUM) {
+		printf("1st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
+	if (args->cdr->car->type != FIXNUM) {
+		printf("2st Argument is invalide:");
+		object_print(args->car);
+		printf("\n");
+		return Error;
+	}
 	if (args == Nil)
 		return make_bool(true);
 	first = args->car->int_val;
