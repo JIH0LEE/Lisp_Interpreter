@@ -1,21 +1,3 @@
-/*
- * "yascm.c" scheme interpreter.
- * Copyright (C) 2015 Hmgle <dustgle@gmail.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
@@ -30,9 +12,13 @@ extern FILE *yyin;
 int yyparse(struct object_s **env);
 
 object *Nil;
+object* Error;
 object *Else;
 object *Ok;
 object *Unspecified;
+
+
+
 static object FALSE = {
 	.type = BOOL,
 	{.bool_val = false},
@@ -48,6 +34,8 @@ void eof_handle(void)
 {
 	NOT_END = false;
 }
+
+
 
 static object *create_object(int type)
 {
@@ -298,10 +286,14 @@ void object_print(const object *obj)
 	case COMPOUND_PROC:
 		printf("<proc>");
 		break;
+	case ERR:
+		printf("Error");
+		break;
+	case NIL:
+		printf("Nil");
+		break;
 	default:
-		if (obj == Nil)
-			printf("()");
-		else if (obj == Ok)
+		if (obj == Ok)
 			fprintf(stderr, "; ok");
 		else if (obj == Unspecified)
 			(void)0;
@@ -376,7 +368,16 @@ static object *prim_cdr(object *env, object *args)
 {
 	return cdar(args);
 }
+static object* prim_error(object* env, object* args)
+{
 
+	return Error;
+}
+static object* prim_nil(object* env, object* args)
+{
+
+	return Nil;
+}
 
 static object* prim_remove(object* env, object* args)
 {
@@ -419,32 +420,6 @@ static object* prim_remove(object* env, object* args)
 	return  cadr(args);
 }
 
-static object* prim_nth(object* env, object* args)
-{
-	object* ret = create_object(PAIR);
-	object* num = make_fixnum(0);
-
-	ret = cdr(args);
-	ret = ret->car;
-	int i = 0;
-
-	while (args->parameters->int_val != car(ret)->int_val
-		|| args->parameters->bool_val != car(ret)->bool_val
-		|| args->parameters->char_val != car(ret)->char_val
-		|| args->parameters->string_val != car(ret)->string_val)
-	{
-		i++;
-		if (ret->cdr != Nil)
-			ret = ret->cdr;
-		else
-		{
-			num->int_val = -1;
-			return Nil;
-		}
-	}
-	num->int_val = i;
-	return num;
-}
 
 static object* prim_subst(object* env, object* args)
 {
@@ -474,20 +449,6 @@ static object* prim_subst(object* env, object* args)
 	return car(cdr(cdr(args)));
 }
 
-
-//static object *prim_set_car(object *env, object *args)
-//{
-//	object *pair = car(args);
-//	pair->car = cadr(args);
-//	return Unspecified;
-//}
-//
-//static object *prim_set_cdr(object *env, object *args)
-//{
-//	object *pair = car(args);
-//	pair->cdr = cadr(args);
-//	return Unspecified;
-//}
 
 static object *prim_list(object *env, object *args)
 {
@@ -530,28 +491,16 @@ static void define_variable(object *var, object *val, object *env)
 	add_variable(env, var, val);
 }
 
-static object *set_var(object *args)
-{
-	return car(args);
-}
-
-static object *set_val(object *args)
-{
-	return cadr(args);
-}
-
-static void set_var_val(object *var, object *val, object *env)
-{
-	object *oldvar = lookup_variable_val(var, env);
-	if (oldvar == NULL)
-		DIE("unbound variable");
-	oldvar->cdr = val;
-}
 
 static object *prim_define(object *env, object *args)
 {
 	define_variable(def_var(args), def_val(args, env), env);
 	return Ok;
+}
+static object* prim_setq(object* env, object* args)
+{
+	define_variable(def_var(args), def_val(args, env), env);
+	return def_val(args, env);
 }
 
 static object *prim_lambda(object *env, object *args)
@@ -559,30 +508,6 @@ static object *prim_lambda(object *env, object *args)
 	return make_function(car(args), cdr(args), env);
 }
 
-static object *prim_let(object *env, object *args)
-{
-	object *parameters;
-	object *exps;
-	object **para_end = &parameters;
-	object **exps_end = &exps;
-	object *let_var_exp = car(args);
-	object *let_body = cdr(args);
-	while (let_var_exp != Nil) {
-		*para_end = cons(caar(let_var_exp), Nil);
-		para_end = &((*para_end)->cdr);
-		*exps_end = cons(car(cdar(let_var_exp)), Nil);
-		exps_end = &((*exps_end)->cdr);
-		let_var_exp = cdr(let_var_exp);
-	}
-	object *lambda = make_function(parameters, let_body, env);
-	return eval(env, cons(lambda, exps));
-}
-
-static object *prim_set(object *env, object *args)
-{
-	set_var_val(set_var(args), eval(env, set_val(args)), env);
-	return Ok;
-}
 
 static bool is_false(object *obj)
 {
@@ -679,7 +604,11 @@ static object *prim_cond(object *env, object *args)
 
 static object *prim_is_null(object *env, object *args)
 {
-	return make_bool((args->car == Nil) ? true : false);
+
+	
+	
+		return make_bool((args->car == Nil) ? true : false);
+	
 }
 
 static object *prim_is_boolean(object *env, object *args)
@@ -711,12 +640,6 @@ static object *prim_is_char(object *env, object *args)
 static object *prim_is_string(object *env, object *args)
 {
 	return make_bool((args->car->type == STRING) ? true : false);
-}
-
-static object *prim_is_procedure(object *env, object *args)
-{
-	return make_bool((args->car->type == COMPOUND_PROC ||
-			args->car->type == PRIM) ? true : false);
 }
 
 static object *prim_is_eq(object *env, object *args)
@@ -848,22 +771,6 @@ static object *load_file(const char *filename, object *env)
 	return Ok;
 }
 
-//static object *prim_eval(object *env, object *args)
-//{
-//	return eval(env, car(args));
-//}
-
-static object *prim_load(object *env, object *args)
-{
-	return load_file(car(args)->string_val, env);
-}
-
-//static object *prim_read(object *env, object *args)
-//{
-//	object *obj;
-//	yyparse(&obj);
-//	return obj;
-//}
 
 static object *prim_print(object *env, object *args)
 {
@@ -874,37 +781,26 @@ static object *prim_print(object *env, object *args)
 	return Unspecified;
 }
 
-//static object *prim_newline(object *env, object *args)
-//{
-//	printf("\n");
-//	return Ok;
-//}
 
 static void define_prim(object *env)
 {
 	add_primitive(env, "define", prim_define, KEYWORD);
+	add_primitive(env, "setq", prim_setq, KEYWORD);
 	add_primitive(env, "lambda", prim_lambda, KEYWORD);
-	add_primitive(env, "let", prim_let, KEYWORD);
-	//add_primitive(env, "set", prim_set, KEYWORD);
 	add_primitive(env, "and", prim_and, KEYWORD);
 	add_primitive(env, "or", prim_or, KEYWORD);
-	//add_primitive(env, "begin", prim_begin, KEYWORD);
 	add_primitive(env, "if", prim_if, KEYWORD);
 	add_primitive(env, "cond", prim_cond, KEYWORD);
-	add_primitive(env, "/", prim_quote, KEYWORD);
+	add_primitive(env, "quote", prim_quote, KEYWORD);
 	add_primitive(env, "+", prim_plus, PRIM);
 	add_primitive(env, "-", prim_sub, PRIM);
 	add_primitive(env, "*", prim_mul, PRIM);
-	add_primitive(env, "quotient", prim_quotient, PRIM);
-	add_primitive(env, "quote", prim_quote, KEYWORD);
+	add_primitive(env, "/", prim_quotient, PRIM);
 	add_primitive(env, "cons", prim_cons, PRIM);
 	add_primitive(env, "car", prim_car, PRIM);
 	add_primitive(env, "cdr", prim_cdr, PRIM);
 	add_primitive(env, "remove", prim_remove, PRIM);
-	add_primitive(env, "nth", prim_nth, PRIM);
 	add_primitive(env, "subst", prim_subst, PRIM);
-	//add_primitive(env, "set-car!", prim_set_car, PRIM);
-	//add_primitive(env, "set-cdr!", prim_set_cdr, PRIM);
 	add_primitive(env, "list", prim_list, PRIM);
 	add_primitive(env, "null", prim_is_null, PRIM);
 	add_primitive(env, "boolean?", prim_is_boolean, PRIM);
@@ -913,18 +809,16 @@ static void define_prim(object *env)
 	add_primitive(env, "numberp", prim_is_number, PRIM);
 	add_primitive(env, "char?", prim_is_char, PRIM);
 	add_primitive(env, "stringp", prim_is_string, PRIM);
-	add_primitive(env, "procedure?", prim_is_procedure, PRIM);
 	add_primitive(env, "equal", prim_is_eq, PRIM);
 	add_primitive(env, "eq?", prim_is_num_eq, PRIM);
 	add_primitive(env, ">", prim_is_num_gt, PRIM);
 	add_primitive(env, "<", prim_is_num_lt, PRIM);
 	add_primitive(env, ">=", prim_is_num_gteq, PRIM);
 	add_primitive(env, "<=", prim_is_num_lteq, PRIM);
-	//add_primitive(env, "eval", prim_eval, PRIM);
-	add_primitive(env, "load", prim_load, PRIM);
-	//add_primitive(env, "read", prim_read, PRIM);
+	add_primitive(env, "Nil", prim_nil, NIL);
+	add_primitive(env, "Error", prim_error, ERR);
 	add_primitive(env, "print", prim_print, PRIM);
-	//add_primitive(env, "newline", prim_newline, PRIM);
+	
 }
 
 object *make_env(object *var, object *up)
@@ -937,7 +831,8 @@ object *make_env(object *var, object *up)
 
 int main(int argc, char **argv)
 {
-	Nil = create_object(OTHER);
+	Nil = create_object(NIL);
+	Error = create_object(ERR);
 	Else = create_object(OTHER);
 	Ok = create_object(OTHER);
 	Unspecified = create_object(OTHER);

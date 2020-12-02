@@ -27,7 +27,7 @@
 (define (cddadr x) (cdr (cdr (car (cdr x)))))
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
-(define setq define)
+
 
 (define (not x)
   (if x #f #t))
@@ -67,7 +67,7 @@
         (else false)))
 
 
-(define eqv? eq?)
+
 
 (define (member item x)
   (cond ((null x) false)
@@ -87,8 +87,46 @@
 
 
 
+(define (nth n items)
+    (if(pair? items)
+        (if (<= (+ n 1) (length items))   
+            (if (eq? n 0)
+                  (car items)
+                  (nth (- n 1) (cdr items)))
+             Nil)
+    Error))
 (define (assoc obj alst)
      (cond
           ((null alst) #f)
           ((equal obj (caar alst)) (car alst))
           (else (assoc obj (cdr alst)))))
+
+
+
+(define SETQ setq)
+(define LIST list)
+(define CAR car)
+(define CDR cdr)
+(define CAAR caar)
+(define CADR cadr)
+(define CDAR cdar)
+(define CDDR cddr)
+(define NTH nth)
+(define CONS cons)
+(define REVERSE reverse)
+(define APPEND append)
+(define LENGTH length)
+(define MEMBER member)
+(define ASSOC assoc)
+(define REMOVE remove)
+(define SUBST subst)
+(define ATOM atom)
+(define NULL null)
+(define NUMBERP numberp)
+(define ZEROP zerop)
+(define EQAUL equal)
+(define STRINGP stringp)
+(define IF if)
+(define COND cond)
+
+            
