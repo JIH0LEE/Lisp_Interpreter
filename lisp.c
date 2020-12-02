@@ -368,26 +368,31 @@ static object* prim_mul(object* env, object* args)
 			return Error;
 		}
 	ret *= (car(args)->int_val);
-}
+	}
 	return make_fixnum(ret);
 }
 
-static object *prim_quotient(object *env, object *args)
+static object* prim_quotient(object* env, object* args)
 {
-
-	if (args->car->type != CHAR && args->car->type != FIXNUM) {
-		printf("Invalide Argument:");
-		object_print(args->car);
-		printf("\n");
-		return Error;
+	int64_t ret;
+	if (args->car->type == FIXNUM)			// 수 입력시
+	{
+		ret = args->car->int_val;
+		if (args->cdr == Nil)				// 입력된 수가 1개인 경우 1/input 리턴
+			return make_fixnum(1/ret);
 	}
-	if (cadr(args)->type != CHAR && cadr(args)->type != FIXNUM) {
-		printf("Invalide Argument:");
-		object_print(cadr(args));
-		printf("\n");
-		return Error;
+	while(args->cdr != Nil)					// 입력된 수가 2개 이상인 경우
+	{
+		args = args->cdr;
+		if (args->car->type != CHAR && args->car->type != FIXNUM) {		// 수가 아닌 입력에 대해서 오류출력
+			printf("Invalide Argument:");
+			object_print(args->car);
+			printf("\n");
+			return Error;
+		}
+		ret /= (car(args)->int_val);
 	}
-	return make_fixnum(args->car->int_val / cadr(args)->int_val);
+	return make_fixnum(ret);
 }
 
 static object *prim_cons(object *env, object *args)
@@ -711,6 +716,28 @@ static object *prim_is_symbol(object *env, object *args)
 	return make_bool((args->car->type == SYMBOL) ? true : false);
 }
 
+static object* prim_is_minus(object* env, object* args)
+{
+	if (args == Nil||args->cdr!=Nil)								// 입력이 없거나 2개의 입력이 있는경우
+		return Error;
+	if (args->car->type != CHAR && args->car->type != FIXNUM) {		// 수가 아닌 입력에 대해서 오류출력
+		printf("\n");
+		return Error;
+	}
+	return make_bool((args->car->int_val < 0) ? true : false);
+}
+
+static object* prim_is_zero(object* env, object* args)
+{
+	if (args == Nil || args->cdr != Nil)								// 입력이 없거나 2개의 입력이 있는경우
+		return Error;
+	if (args->car->type != CHAR && args->car->type != FIXNUM) {		// 수가 아닌 입력에 대해서 오류출력
+		printf("\n");
+		return Error;
+	}
+	return make_bool((args->car->int_val == 0) ? true : false);
+}
+
 static object *prim_is_number(object *env, object *args)
 {
 	return make_bool((args->car->type == FIXNUM ||
@@ -947,6 +974,8 @@ static void define_prim(object *env)
 	add_primitive(env, "boolean?", prim_is_boolean, PRIM);
 	add_primitive(env, "pair?", prim_is_pair, PRIM);
 	add_primitive(env, "atom", prim_is_symbol, PRIM);
+	add_primitive(env, "minusp", prim_is_minus, PRIM);
+	add_primitive(env, "zerop", prim_is_zero, PRIM);
 	add_primitive(env, "numberp", prim_is_number, PRIM);
 	add_primitive(env, "char?", prim_is_char, PRIM);
 	add_primitive(env, "stringp", prim_is_string, PRIM);

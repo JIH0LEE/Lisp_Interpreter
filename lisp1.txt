@@ -33,7 +33,6 @@
 (define (not x)
   (if x #f #t))
 
-(define (zerop x) (= 0 x))
 
 (define (positive? x) (> x 0))
 
@@ -125,8 +124,10 @@
 (define NULL null)
 (define NUMBERP numberp)
 (define ZEROP zerop)
+(define MINUSP minusp)
 (define EQAUL equal)
 (define STRINGP stringp)
+(define PRINT print)
 (define IF if)
 (define COND cond)
 
