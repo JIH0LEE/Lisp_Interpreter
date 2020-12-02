@@ -85,11 +85,6 @@
        (append (reverse (cdr items)) 
                (cons (car items) '()))))
 
-(define (nth n items)
-  (if (eq? n 0)
-      (car items)
-      (nth (- n 1) (cdr items))))
-
 
 
 (define (assoc obj alst)

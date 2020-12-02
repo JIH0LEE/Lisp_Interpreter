@@ -35,11 +35,11 @@ object *Ok;
 object *Unspecified;
 static object FALSE = {
 	.type = BOOL,
-	.bool_val = false,
+	{.bool_val = false},
 };
 static object TRUE = {
 	.type = BOOL,
-	.bool_val = true,
+	{.bool_val = true},
 };
 static object *Symbol_table;
 static bool NOT_END = true;
@@ -376,6 +376,104 @@ static object *prim_cdr(object *env, object *args)
 {
 	return cdar(args);
 }
+
+
+static object* prim_remove(object* env, object* args)
+{
+	object* ret = create_object(PAIR);
+
+	ret = cdr(args);
+	ret = ret->car; //ret은 이제 입력 리스트
+
+	if ((ret->cdr == Nil) && ((args->parameters->int_val == car(ret)->int_val)
+		|| (args->parameters->bool_val == car(ret)->bool_val)
+		|| (args->parameters->char_val == car(ret)->char_val)
+		|| (args->parameters->string_val == car(ret)->string_val))) // 리스트의 길이가 1일때 같다면
+		return Nil;
+	else if (ret->cdr == Nil) //한개밖에 없는데 다르다면 그대로 출력
+		return ret;
+
+	while (ret->cdr != Nil) // 리스트의 길이가 2이상일때
+	{
+		while (args->parameters->int_val == car(ret)->int_val
+			|| args->parameters->bool_val == car(ret)->bool_val
+			|| args->parameters->char_val == car(ret)->char_val
+			|| args->parameters->string_val == car(ret)->string_val) //입력한것이랑 같을때
+		{
+			ret->car = ret->cdr->car;
+			if (ret->cdr->cdr != Nil)
+				ret->cdr = ret->cdr->cdr;
+			else
+			{
+				ret->cdr->car = NULL;
+				if (args->parameters->int_val == car(ret)->int_val
+					|| args->parameters->bool_val == car(ret)->bool_val
+					|| args->parameters->char_val == car(ret)->char_val
+					|| args->parameters->string_val == car(ret)->string_val)
+					ret->car = NULL;
+				return  cadr(args);
+			}
+		}
+		ret = ret->cdr;
+	}
+	return  cadr(args);
+}
+
+static object* prim_nth(object* env, object* args)
+{
+	object* ret = create_object(PAIR);
+	object* num = make_fixnum(0);
+
+	ret = cdr(args);
+	ret = ret->car;
+	int i = 0;
+
+	while (args->parameters->int_val != car(ret)->int_val
+		|| args->parameters->bool_val != car(ret)->bool_val
+		|| args->parameters->char_val != car(ret)->char_val
+		|| args->parameters->string_val != car(ret)->string_val)
+	{
+		i++;
+		if (ret->cdr != Nil)
+			ret = ret->cdr;
+		else
+		{
+			num->int_val = -1;
+			return Nil;
+		}
+	}
+	num->int_val = i;
+	return num;
+}
+
+static object* prim_subst(object* env, object* args)
+{
+	object* ret = create_object(PAIR);
+
+	ret = cdr(cdr(args));
+	ret = ret->car;
+
+	while (ret->cdr != Nil) // 리스트의 길이가 2이상일때
+	{
+		if (cadr(args)->int_val == car(ret)->int_val
+			|| cadr(args)->bool_val == car(ret)->bool_val
+			|| cadr(args)->char_val == car(ret)->char_val
+			|| cadr(args)->string_val == car(ret)->string_val) //입력한것이랑 같을때
+		{
+			ret->car = car(args);
+		};
+		ret = ret->cdr;
+	}
+	if (cadr(args)->int_val == car(ret)->int_val
+		|| cadr(args)->bool_val == car(ret)->bool_val
+		|| cadr(args)->char_val == car(ret)->char_val
+		|| cadr(args)->string_val == car(ret)->string_val) //입력한것이랑 같을때
+	{
+		ret->car = car(args);
+	}
+	return car(cdr(cdr(args)));
+}
+
 
 //static object *prim_set_car(object *env, object *args)
 //{
@@ -798,9 +896,13 @@ static void define_prim(object *env)
 	add_primitive(env, "-", prim_sub, PRIM);
 	add_primitive(env, "*", prim_mul, PRIM);
 	add_primitive(env, "quotient", prim_quotient, PRIM);
+	add_primitive(env, "quote", prim_quote, KEYWORD);
 	add_primitive(env, "cons", prim_cons, PRIM);
 	add_primitive(env, "car", prim_car, PRIM);
 	add_primitive(env, "cdr", prim_cdr, PRIM);
+	add_primitive(env, "remove", prim_remove, PRIM);
+	add_primitive(env, "nth", prim_nth, PRIM);
+	add_primitive(env, "subst", prim_subst, PRIM);
 	//add_primitive(env, "set-car!", prim_set_car, PRIM);
 	//add_primitive(env, "set-cdr!", prim_set_cdr, PRIM);
 	add_primitive(env, "list", prim_list, PRIM);
