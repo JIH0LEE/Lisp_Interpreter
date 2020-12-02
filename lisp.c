@@ -37,7 +37,7 @@ void eof_handle(void)
 
 
 
-static object *create_object(int type)
+static object *create_object(int type) /* typeì— í•´ë‹¹í•˜ëŠ” objcet ìƒì„±  */
 {
 	object *obj = calloc(1, sizeof(*obj));
 	if (obj == NULL) {
@@ -48,17 +48,17 @@ static object *create_object(int type)
 	return obj;
 }
 
-static object *car(object *pair)
+static object *car(object *pair) /* object car */
 {
 	return pair->car;
 }
 
-static object *cdr(object *pair)
+static object *cdr(object *pair) /* object cdr */
 {
 	return pair->cdr;
 }
 
-#define cadr(obj)	car(cdr(obj))
+#define cadr(obj)	car(cdr(obj)) /* car cdr í˜¼í•©ì‚¬ìš© ëª…ë ¹ì–´ ì •ì˜ */
 #define cdar(obj)	cdr(car(obj))
 #define caar(obj)	car(car(obj))
 #define caddr(obj)	car(cdr(cdr(obj)))
@@ -311,7 +311,7 @@ static void add_primitive(object *env, char *name, Primitive *func,
 	add_variable(env, sym, prim);
 }
 
-static object *prim_plus(object *env, object *args)
+static object *prim_plus(object *env, object *args) /* ì‚¬ì¹™ì—°ì‚° ë§ì…ˆ */
 {
 	int64_t ret;
 	for (ret = 0; args != Nil; args = args->cdr) {
@@ -327,7 +327,7 @@ static object *prim_plus(object *env, object *args)
 	return make_fixnum(ret);
 }
 
-static int list_length(object *list)
+static int list_length(object *list) /* function LENGTH */
 {
 	int len = 0;
 	for (;;) {
@@ -338,7 +338,7 @@ static int list_length(object *list)
 	}
 }
 
-static object *prim_sub(object *env, object *args)
+static object *prim_sub(object *env, object *args) /* ì‚¬ì¹™ì—°ì‚° ì…ˆ */
 {
 	int64_t ret;
 	if (list_length(args) == 1)
@@ -356,7 +356,7 @@ static object *prim_sub(object *env, object *args)
 	return make_fixnum(ret);
 }
 
-static object* prim_mul(object* env, object* args)
+static object* prim_mul(object* env, object* args) /* ì‚¬ì¹™ì—°ì‚° ê³±ì…ˆ */
 {
 	int64_t ret;
 	for (ret = 1; args != Nil; args = args->cdr) {
@@ -372,19 +372,19 @@ static object* prim_mul(object* env, object* args)
 	return make_fixnum(ret);
 }
 
-static object* prim_quotient(object* env, object* args)
+static object* prim_quotient(object* env, object* args) /* ì‚¬ì¹™ì—°ì‚° ë‚˜ëˆ—ì…ˆ */
 {
 	int64_t ret;
-	if (args->car->type == FIXNUM)			// ¼ö ÀÔ·Â½Ã
+	if (args->car->type == FIXNUM)			
 	{
 		ret = args->car->int_val;
-		if (args->cdr == Nil)				// ÀÔ·ÂµÈ ¼ö°¡ 1°³ÀÎ °æ¿ì 1/input ¸®ÅÏ
+		if (args->cdr == Nil)				
 			return make_fixnum(1/ret);
 	}
-	while(args->cdr != Nil)					// ÀÔ·ÂµÈ ¼ö°¡ 2°³ ÀÌ»óÀÎ °æ¿ì
+	while(args->cdr != Nil)					
 	{
 		args = args->cdr;
-		if (args->car->type != CHAR && args->car->type != FIXNUM) {		// ¼ö°¡ ¾Æ´Ñ ÀÔ·Â¿¡ ´ëÇØ¼­ ¿À·ùÃâ·Â
+		if (args->car->type != CHAR && args->car->type != FIXNUM) {		
 			printf("Invalide Argument:");
 			object_print(args->car);
 			printf("\n");
@@ -413,7 +413,7 @@ static object *prim_cons(object *env, object *args)
 	return cons(car(args), cadr(args));
 }
 
-static object *prim_car(object *env, object *args)
+static object *prim_car(object *env, object *args) /* function CAR */
 {
 
 	if (car(args)->type != PAIR) {
@@ -425,7 +425,7 @@ static object *prim_car(object *env, object *args)
 	return caar(args);
 }
 
-static object *prim_cdr(object *env, object *args)
+static object *prim_cdr(object *env, object *args) /* function CDR */
 {
 
 	if (car(args)->type != PAIR) {
@@ -448,7 +448,7 @@ static object* prim_nil(object* env, object* args)
 	return Nil;
 }
 
-static object* prim_remove(object* env, object* args)
+static object* prim_remove(object* env, object* args) /* function REMOVE */
 {
 	object* ret = create_object(PAIR);
 
@@ -466,22 +466,22 @@ static object* prim_remove(object* env, object* args)
 	}
 
 	ret = cdr(args);
-	ret = ret->car; //retÀº ÀÌÁ¦ ÀÔ·Â ¸®½ºÆ®
+	ret = ret->car;
 
 	if ((ret->cdr == Nil) && ((args->parameters->int_val == car(ret)->int_val)
 		|| (args->parameters->bool_val == car(ret)->bool_val)
 		|| (args->parameters->char_val == car(ret)->char_val)
-		|| (args->parameters->string_val == car(ret)->string_val))) // ¸®½ºÆ®ÀÇ ±æÀÌ°¡ 1ÀÏ¶§ °°´Ù¸é
+		|| (args->parameters->string_val == car(ret)->string_val))) 
 		return Nil;
-	else if (ret->cdr == Nil) //ÇÑ°³¹Û¿¡ ¾ø´Âµ¥ ´Ù¸£´Ù¸é ±×´ë·Î Ãâ·Â
+	else if (ret->cdr == Nil)
 		return ret;
 
-	while (ret->cdr != Nil) // ¸®½ºÆ®ÀÇ ±æÀÌ°¡ 2ÀÌ»óÀÏ¶§
+	while (ret->cdr != Nil) 
 	{
 		while (args->parameters->int_val == car(ret)->int_val
 			|| args->parameters->bool_val == car(ret)->bool_val
 			|| args->parameters->char_val == car(ret)->char_val
-			|| args->parameters->string_val == car(ret)->string_val) //ÀÔ·ÂÇÑ°ÍÀÌ¶û °°À»¶§
+			|| args->parameters->string_val == car(ret)->string_val)
 		{
 			ret->car = ret->cdr->car;
 			if (ret->cdr->cdr != Nil)
@@ -499,23 +499,28 @@ static object* prim_remove(object* env, object* args)
 		}
 		ret = ret->cdr;
 	}
+	if (args->parameters->int_val == car(ret)->int_val
+					|| args->parameters->bool_val == car(ret)->bool_val
+					|| args->parameters->char_val == car(ret)->char_val
+					|| args->parameters->string_val == car(ret)->string_val)
+					ret->car = NULL;
 	return  cadr(args);
 }
 
 
-static object* prim_subst(object* env, object* args)
+static object* prim_subst(object* env, object* args) /* function SUBST */
 {
 	object* ret = create_object(PAIR);
 
 	ret = cdr(cdr(args));
 	ret = ret->car;
 
-	while (ret->cdr != Nil) // ¸®½ºÆ®ÀÇ ±æÀÌ°¡ 2ÀÌ»óÀÏ¶§
+	while (ret->cdr != Nil) 
 	{
 		if (cadr(args)->int_val == car(ret)->int_val
 			|| cadr(args)->bool_val == car(ret)->bool_val
 			|| cadr(args)->char_val == car(ret)->char_val
-			|| cadr(args)->string_val == car(ret)->string_val) //ÀÔ·ÂÇÑ°ÍÀÌ¶û °°À»¶§
+			|| cadr(args)->string_val == car(ret)->string_val) 
 		{
 			ret->car = car(args);
 		};
@@ -524,7 +529,7 @@ static object* prim_subst(object* env, object* args)
 	if (cadr(args)->int_val == car(ret)->int_val
 		|| cadr(args)->bool_val == car(ret)->bool_val
 		|| cadr(args)->char_val == car(ret)->char_val
-		|| cadr(args)->string_val == car(ret)->string_val) //ÀÔ·ÂÇÑ°ÍÀÌ¶û °°À»¶§
+		|| cadr(args)->string_val == car(ret)->string_val)
 	{
 		ret->car = car(args);
 	}
@@ -532,7 +537,7 @@ static object* prim_subst(object* env, object* args)
 }
 
 
-static object *prim_list(object *env, object *args)
+static object *prim_list(object *env, object *args) /* list ìƒì„± */
 {
 	return args;
 }
@@ -579,7 +584,7 @@ static object *prim_define(object *env, object *args)
 	define_variable(def_var(args), def_val(args, env), env);
 	return Ok;
 }
-static object* prim_setq(object* env, object* args)
+static object* prim_setq(object* env, object* args) /* function SETQ */
 {
 	if (car(args)->type != SYMBOL) {
 		printf("Invalide Argument:");
@@ -694,11 +699,7 @@ static object *prim_cond(object *env, object *args)
 
 static object *prim_is_null(object *env, object *args)
 {
-
-	
-	
-		return make_bool((args->car == Nil) ? true : false);
-	
+	return make_bool((args->car == Nil) ? true : false);
 }
 
 static object *prim_is_boolean(object *env, object *args)
@@ -716,22 +717,22 @@ static object *prim_is_symbol(object *env, object *args)
 	return make_bool((args->car->type == SYMBOL) ? true : false);
 }
 
-static object* prim_is_minus(object* env, object* args)
+static object* prim_is_minus(object* env, object* args) /* Predicate function MINUSP */
 {
-	if (args == Nil||args->cdr!=Nil)								// ÀÔ·ÂÀÌ ¾ø°Å³ª 2°³ÀÇ ÀÔ·ÂÀÌ ÀÖ´Â°æ¿ì
+	if (args == Nil||args->cdr!=Nil)								
 		return Error;
-	if (args->car->type != CHAR && args->car->type != FIXNUM) {		// ¼ö°¡ ¾Æ´Ñ ÀÔ·Â¿¡ ´ëÇØ¼­ ¿À·ùÃâ·Â
+	if (args->car->type != CHAR && args->car->type != FIXNUM) {		
 		printf("\n");
 		return Error;
 	}
 	return make_bool((args->car->int_val < 0) ? true : false);
 }
 
-static object* prim_is_zero(object* env, object* args)
+static object* prim_is_zero(object* env, object* args) /* Predicate function ZEROP */
 {
-	if (args == Nil || args->cdr != Nil)								// ÀÔ·ÂÀÌ ¾ø°Å³ª 2°³ÀÇ ÀÔ·ÂÀÌ ÀÖ´Â°æ¿ì
+	if (args == Nil || args->cdr != Nil)								
 		return Error;
-	if (args->car->type != CHAR && args->car->type != FIXNUM) {		// ¼ö°¡ ¾Æ´Ñ ÀÔ·Â¿¡ ´ëÇØ¼­ ¿À·ùÃâ·Â
+	if (args->car->type != CHAR && args->car->type != FIXNUM) {		
 		printf("\n");
 		return Error;
 	}
@@ -950,7 +951,7 @@ static object *prim_print(object *env, object *args)
 }
 
 
-static void define_prim(object *env)
+static void define_prim(object *env) /* ì…ë ¥ì— ëŒ€í•´ í•´ë‹¹í•˜ëŠ” í•¨ìˆ˜í˜¸ì¶œ */
 {
 	add_primitive(env, "define", prim_define, KEYWORD);
 	add_primitive(env, "setq", prim_setq, KEYWORD);
