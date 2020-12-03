@@ -154,7 +154,7 @@
 (define NUMBERP numberp)
 (define ZEROP zerop)
 (define MINUSP minusp)
-(define EQAUL equal)
+(define EQUAL equal)
 (define STRINGP stringp)
 (define PRINT print)
 (define IF if)
