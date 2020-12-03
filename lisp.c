@@ -786,22 +786,22 @@ static object* prim_is_minus(object* env, object* args) /* Predicate function MI
 {
 	if (args == Nil||args->cdr!=Nil)								
 		return Error;
-	if (args->car->type != CHAR && args->car->type != FIXNUM) {		
+	if (args->car->type != CHAR && args->car->type != FIXNUM && args->car->type != FLOATNUM) {		
 		printf("\n");
 		return Error;
 	}
-	return make_bool((args->car->int_val < 0) ? true : false);
+	return make_bool((args->car->int_val < 0 || args->car->float_val < 0.0) ? true : false);
 }
 
 static object* prim_is_zero(object* env, object* args) /* Predicate function ZEROP */
 {
 	if (args == Nil || args->cdr != Nil)								
 		return Error;
-	if (args->car->type != CHAR && args->car->type != FIXNUM) {		
+	if (args->car->type != CHAR && args->car->type != FIXNUM && args->car->type !=  FLOATNUM) {		
 		printf("\n");
 		return Error;
 	}
-	return make_bool((args->car->int_val == 0) ? true : false);
+	return make_bool((args->car->int_val == 0||args->car->float_val==0.0) ? true : false);
 }
 
 static object *prim_is_number(object *env, object *args)
