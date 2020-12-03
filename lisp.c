@@ -873,16 +873,16 @@ static object *prim_is_num_eq(object *env, object *args)
 
 static object *prim_is_num_gt(object *env, object *args)
 {
-	int64_t next;
-	int64_t first;
+	double next;
+	double first;
 
-	if (args->car->type != FIXNUM) {
+	if (args->car->type != FIXNUM && args->car->type != FLOATNUM) {
 		printf("1st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
 		return Error;
 	}
-	if (args->cdr->car->type != FIXNUM) {
+	if (args->cdr->car->type != FIXNUM && args->cdr->car->type != FLOATNUM) {
 		printf("2st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
@@ -891,9 +891,15 @@ static object *prim_is_num_gt(object *env, object *args)
 	
 	if (args == Nil)
 		return make_bool(true);
-	first = args->car->int_val;
+	if (args->car->type == FIXNUM)
+		first = args->car->int_val;
+	else
+		first = args->car->float_val;
 	for (args = args->cdr; args != Nil; first = next, args = args->cdr) {
-		next = args->car->int_val;
+		if (args->car->type == FIXNUM)
+			next = args->car->int_val;
+		else
+			next = args->car->float_val;
 		if (next >= first)
 			return make_bool(false);
 	}
@@ -902,16 +908,16 @@ static object *prim_is_num_gt(object *env, object *args)
 
 static object* prim_is_num_lt(object* env, object* args)
 {
-	int64_t next;
-	int64_t first;
+	double next;
+	double first;
 
-	if (args->car->type != FIXNUM) {
+	if (args->car->type != FIXNUM && args->car->type != FLOATNUM) {
 		printf("1st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
 		return Error;
 	}
-	if (args->cdr->car->type != FIXNUM) {
+	if (args->cdr->car->type != FIXNUM && args->cdr->car->type != FLOATNUM) {
 		printf("2st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
@@ -919,9 +925,15 @@ static object* prim_is_num_lt(object* env, object* args)
 	}
 	if (args == Nil)
 		return make_bool(true);
-	first = args->car->int_val;
+	if (args->car->type == FIXNUM)
+		first = args->car->int_val;
+	else
+		first = args->car->float_val;
 	for (args = args->cdr; args != Nil; first = next, args = args->cdr) {
-		next = args->car->int_val;
+		if (args->car->type == FIXNUM)
+			next = args->car->int_val;
+		else
+			next = args->car->float_val;
 		if (next <= first)
 			return make_bool(false);
 	}
@@ -929,16 +941,16 @@ static object* prim_is_num_lt(object* env, object* args)
 }
 static object* prim_is_num_gteq(object* env, object* args)
 {
-	int64_t next;
-	int64_t first;
+	double next;
+	double first;
 
-	if (args->car->type != FIXNUM) {
+	if (args->car->type != FIXNUM && args->car->type != FLOATNUM) {
 		printf("1st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
 		return Error;
 	}
-	if (args->cdr->car->type != FIXNUM) {
+	if (args->cdr->car->type != FIXNUM && args->cdr->car->type != FLOATNUM) {
 		printf("2st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
@@ -946,9 +958,15 @@ static object* prim_is_num_gteq(object* env, object* args)
 	}
 	if (args == Nil)
 		return make_bool(true);
-	first = args->car->int_val;
+	if (args->car->type == FIXNUM)
+		first = args->car->int_val;
+	else
+		first = args->car->float_val;
 	for (args = args->cdr; args != Nil; first = next, args = args->cdr) {
-		next = args->car->int_val;
+		if (args->car->type == FIXNUM)
+			next = args->car->int_val;
+		else
+			next = args->car->float_val;
 		if (next > first)
 			return make_bool(false);
 	}
@@ -957,16 +975,16 @@ static object* prim_is_num_gteq(object* env, object* args)
 
 static object* prim_is_num_lteq(object* env, object* args)
 {
-	int64_t next;
-	int64_t first;
+	double next;
+	double first;
 
-	if (args->car->type != FIXNUM) {
+	if (args->car->type != FIXNUM && args->car->type != FLOATNUM) {
 		printf("1st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
 		return Error;
 	}
-	if (args->cdr->car->type != FIXNUM) {
+	if (args->cdr->car->type != FIXNUM && args->cdr->car->type != FLOATNUM) {
 		printf("2st Argument is invalide:");
 		object_print(args->car);
 		printf("\n");
@@ -974,9 +992,15 @@ static object* prim_is_num_lteq(object* env, object* args)
 	}
 	if (args == Nil)
 		return make_bool(true);
-	first = args->car->int_val;
+	if (args->car->type == FIXNUM)
+		first = args->car->int_val;
+	else
+		first = args->car->float_val;
 	for (args = args->cdr; args != Nil; first = next, args = args->cdr) {
-		next = args->car->int_val;
+		if (args->car->type == FIXNUM)
+			next = args->car->int_val;
+		else
+			next = args->car->float_val;
 		if (next < first)
 			return make_bool(false);
 	}
