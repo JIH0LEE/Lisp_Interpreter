@@ -43,7 +43,7 @@ struct object_s {
 	object_type type;
 	union {
 		int64_t int_val; /* FIXNUM */
-		long double float_val; /* FLOATNUM */
+		double float_val; /* FLOATNUM */
 		bool bool_val; /* BOOL */
 		char char_val; /* CHAR */
 		char *string_val; /* STRING */
@@ -68,6 +68,7 @@ object *cons(object *car, object *cdr);
 object *make_bool(bool val);
 object *make_char(char val);
 object *make_string(const char *val);
+object* make_floatnum(double val);
 object *make_fixnum(int64_t val);
 object *make_emptylist(void);
 object *make_symbol(const char *name);

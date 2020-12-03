@@ -1,6 +1,7 @@
 
 %{
 #include <stdint.h>
+#include <stdlib.h>
 #include "lisp_bison.tab.h"
 %}
 
@@ -33,7 +34,10 @@ CHAR_VAL (newline|space|[^{WS}]|x[0-9A-F]+)
 	yylval.n = strtoll(yytext, NULL, 10);
 	return FIXNUM_T;
 }
-[-]?{DIG}?"."{DIG}	{return FLOATNUM_T;}
+[-]?{DIG}?"."{DIG}	{
+	yylval.d = atof(yytext);
+	return FLOATNUM_T;
+	}
 
 #\\	{BEGIN(EXPECT_CHAR);}
 <EXPECT_CHAR>{CHAR_VAL} {

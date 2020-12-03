@@ -411,13 +411,14 @@ char *yytext;
 #define INITIAL 0
 #line 3 "lisp_flex.l"
 #include <stdint.h>
+#include <stdlib.h>
 #include "lisp_bison.tab.h"
 #define YY_ALWAYS_INTERACTIVE 1
 #define EXPECT_CHAR 1
 
 #define EXPECT_STRING 2
 
-#line 421 "lex.yy.c"
+#line 422 "lex.yy.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -568,10 +569,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 20 "lisp_flex.l"
+#line 21 "lisp_flex.l"
 
 
-#line 575 "lex.yy.c"
+#line 576 "lex.yy.c"
 
 	if ( yy_init )
 		{
@@ -656,37 +657,37 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 22 "lisp_flex.l"
+#line 23 "lisp_flex.l"
 {return LP;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 23 "lisp_flex.l"
+#line 24 "lisp_flex.l"
 {return RP;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 24 "lisp_flex.l"
+#line 25 "lisp_flex.l"
 {return DOT;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 25 "lisp_flex.l"
+#line 26 "lisp_flex.l"
 {return QUOTE;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "lisp_flex.l"
+#line 27 "lisp_flex.l"
 {return FALSE_T;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 27 "lisp_flex.l"
+#line 28 "lisp_flex.l"
 {return TRUE_T;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 28 "lisp_flex.l"
+#line 29 "lisp_flex.l"
 /* do nothing with white space */
 	YY_BREAK
 case 8:
@@ -694,18 +695,18 @@ case 8:
 yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 29 "lisp_flex.l"
+#line 30 "lisp_flex.l"
 /* Scheme comment */
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(EXPECT_CHAR):
 case YY_STATE_EOF(EXPECT_STRING):
-#line 30 "lisp_flex.l"
+#line 31 "lisp_flex.l"
 {return END_OF_FILE;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 32 "lisp_flex.l"
+#line 33 "lisp_flex.l"
 {
 	yylval.n = strtoll(yytext, NULL, 10);
 	return FIXNUM_T;
@@ -713,17 +714,20 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 36 "lisp_flex.l"
-{return FLOATNUM_T;}
+#line 37 "lisp_flex.l"
+{
+	yylval.d = atof(yytext);
+	return FLOATNUM_T;
+	}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 38 "lisp_flex.l"
+#line 42 "lisp_flex.l"
 {BEGIN(EXPECT_CHAR);}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 39 "lisp_flex.l"
+#line 43 "lisp_flex.l"
 {
 	BEGIN(INITIAL); 
 	yylval.c = *yytext;
@@ -732,12 +736,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 45 "lisp_flex.l"
+#line 49 "lisp_flex.l"
 {BEGIN(EXPECT_STRING); return DOUBLE_QUOTE;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 46 "lisp_flex.l"
+#line 50 "lisp_flex.l"
 {
 	yylval.s = yytext;
 	return STRING_T;
@@ -745,20 +749,20 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 50 "lisp_flex.l"
+#line 54 "lisp_flex.l"
 {BEGIN(INITIAL); return DOUBLE_QUOTE;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 52 "lisp_flex.l"
+#line 56 "lisp_flex.l"
 {yylval.s = yytext; return SYMBOL_T;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 53 "lisp_flex.l"
+#line 57 "lisp_flex.l"
 ECHO;
 	YY_BREAK
-#line 762 "lex.yy.c"
+#line 766 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1642,5 +1646,5 @@ int main()
 	return 0;
 	}
 #endif
-#line 53 "lisp_flex.l"
+#line 57 "lisp_flex.l"
 

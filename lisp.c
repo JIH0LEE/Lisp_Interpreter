@@ -106,6 +106,12 @@ object *make_string(const char *val)
 	obj->string_val[len] = '\0';
 	return obj;
 }
+object* make_floatnum(double val)
+{
+	object* obj = create_object(FLOATNUM);
+	obj->float_val = val;
+	return obj;
+}
 
 object *make_fixnum(int64_t val)
 {
@@ -260,6 +266,9 @@ void object_print(const object *obj)
 	case FIXNUM:
 		printf("%lld", obj->int_val);
 		break;
+	case FLOATNUM:
+		printf("%lf", obj->float_val);
+		break;
 	case KEYWORD:
 		printf("<keyword>");
 		break;
@@ -313,18 +322,32 @@ static void add_primitive(object *env, char *name, Primitive *func,
 
 static object *prim_plus(object *env, object *args) /* 사칙연산 덧셈 */
 {
-	int64_t ret;
-	for (ret = 0; args != Nil; args = args->cdr) {
-		if (args->car->type != CHAR && args->car->type != FIXNUM) {
-			printf("Invalide Argument:");
-			object_print(args);
-			printf("\n");
-			return Error;
-		}
-		
-		ret += (car(args)->int_val);
-	}
-	return make_fixnum(ret);
+   
+   double ret;
+   ret=0.0;
+   int float_flag=0;
+   for (; args != Nil; args = args->cdr) {
+      if (args->car->type != FIXNUM&&args->car->type != FLOATNUM) {
+         printf("Invalide Argument:");
+         object_print(args);
+         printf("\n");
+         return Error;
+      }
+      if(args->car->type == FIXNUM){
+
+      ret += (car(args)->int_val);
+      }
+      else {
+         ret += (car(args)->float_val);
+         float_flag=1;
+      }
+   }
+   if(float_flag==1){
+      return make_floatnum(ret);
+   }
+   else{
+      return make_fixnum(ret);
+   }
 }
 
 static int list_length(object *list) /* function LENGTH */
@@ -340,24 +363,51 @@ static int list_length(object *list) /* function LENGTH */
 
 static object *prim_sub(object *env, object *args) /* 사칙연산 셈 */
 {
-	int64_t ret;
-	if (list_length(args) == 1)
-		return make_fixnum(-car(args)->int_val);
-	ret = car(args)->int_val;
+
+	double ret;
+	int float_flag=0;
+	if (list_length(args) == 1){
+		if(args->car->type == FIXNUM){
+			return make_fixnum(-car(args)->int_val);
+		}
+		if(args->car->type==FLOATNUM){
+			return make_floatnum(-car(args)->float_val);
+		}
+		
+	}
+	if(args->car->type == FIXNUM){
+			ret = car(args)->int_val;
+		}
+	else if(args->car->type==FLOATNUM){
+			ret = car(args)->float_val;
+		}
 	for (args = args->cdr; args != Nil; args = args->cdr) {
-		if (args->car->type != CHAR && args->car->type != FIXNUM) {
+		if (args->car->type != CHAR && args->car->type != FIXNUM&&args->car->type != FLOATNUM) {
 			printf("Invalide Argument:");
 			object_print(args);
 			printf("\n");
 			return Error;
 		}
-		ret -= (car(args)->int_val);
+		if(args->car->type == FIXNUM){
+			ret -= (car(args)->int_val);
+		}
+		else{
+			float_flag=1;
+			ret -= (car(args)->float_val);
+		}
+		
 	}
-	return make_fixnum(ret);
+	if(float_flag==1){
+		return make_floatnum(ret);
+	}
+	else{
+		return make_fixnum(ret);
+	}
 }
 
 static object* prim_mul(object* env, object* args) /* 사칙연산 곱셈 */
 {
+	/*
 	int64_t ret;
 	for (ret = 1; args != Nil; args = args->cdr) {
 
@@ -369,7 +419,34 @@ static object* prim_mul(object* env, object* args) /* 사칙연산 곱셈 */
 		}
 	ret *= (car(args)->int_val);
 	}
-	return make_fixnum(ret);
+	return make_fixnum(ret);*/
+	
+	double ret=1.0;
+	int float_flag=0;
+	for (; args != Nil; args = args->cdr) {
+
+		if (args->car->type != FIXNUM &&args->car->type != FLOATNUM) {
+			printf("Invalide Argument:");
+			object_print(args);
+			printf("\n");
+			return Error;
+		}
+		
+		if(args->car->type == FIXNUM){
+			ret *= (car(args)->int_val);
+		}
+		else{
+			float_flag=1;
+			ret *= (car(args)->float_val);
+		}
+	
+	}
+	if(float_flag==1){
+		return make_floatnum(ret);
+	}
+	else{
+		return make_fixnum(ret);
+	}
 }
 
 static object* prim_quotient(object* env, object* args) /* 사칙연산 나눗셈 */
@@ -397,18 +474,6 @@ static object* prim_quotient(object* env, object* args) /* 사칙연산 나눗�
 
 static object *prim_cons(object *env, object *args)
 {
-	if (car(args)->type != FIXNUM && car(args)->type != SYMBOL) {
-		printf("1st argument is not atom:");
-		object_print(args->car);
-		printf("\n");
-		return Error;
-	}
-	if (cadr(args)->type != PAIR) {
-		printf("secend argument is not list:");
-		object_print(cadr(args));
-		printf("\n");
-		return Error;
-	}
 
 	return cons(car(args), cadr(args));
 }

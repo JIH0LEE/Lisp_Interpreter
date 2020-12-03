@@ -66,7 +66,7 @@ typedef union YYSTYPE
 
 	struct object_s *var;
 	int64_t n;
-	long double d;
+	double d;
 	char c;
 	char *s;
 
